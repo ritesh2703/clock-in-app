@@ -1,14 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  Dot,
-} from "recharts";
-import axios from "axios";
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Dot } from "recharts";
 import { auth } from "../firebase/firebase";
 
 const AttendanceGraph = () => {
@@ -34,15 +25,11 @@ const AttendanceGraph = () => {
     try {
       setLoading(true);
       setError("");
-      const response = await axios.get(`/api/attendance/${userId}/week`);
-      if (Array.isArray(response.data)) {
-        setAttendanceData(response.data);
-      } else {
-        throw new Error("Invalid data format received from API.");
-      }
+      const data = await getWeeklyAttendance(userId);
+      setAttendanceData(data);
     } catch (error) {
       console.error("Error fetching attendance data:", error);
-      setError("Failed to load attendance data.");
+      setError("Failed to load attendance data. Please check your network or permissions.");
     } finally {
       setLoading(false);
     }
@@ -52,9 +39,8 @@ const AttendanceGraph = () => {
     const { cx, cy, payload } = props;
     const statusColors = {
       present: "#22c55e", // Green
-      weekend: "#f97316", // Orange
-      holiday: "#ef4444", // Red
-      absent: "#3b82f6", // Blue
+      absent: "#ef4444", // Red
+      weekend: "#3b82f6", // Blue
     };
 
     return <Dot cx={cx} cy={cy} r={6} fill={statusColors[payload.status] || "#22c55e"} />;
@@ -71,17 +57,13 @@ const AttendanceGraph = () => {
       ) : attendanceData.length === 0 ? (
         <p className="text-center text-gray-500">No attendance data available.</p>
       ) : (
-        <ResponsiveContainer width="100%" height={200}>
+        <ResponsiveContainer width="100%" height={250}>
           <LineChart data={attendanceData}>
             <XAxis dataKey="day" />
             <YAxis hide />
-            <Tooltip />
-            <Line
-              type="monotone"
-              dataKey="value"
-              stroke="#8884d8"
-              dot={renderCustomDot}
-            />
+            <Tooltip formatter={(value, name, props) => [`Clock In: ${props.payload.clockIn || "--"} | Clock Out: ${props.payload.clockOut || "--"}`, "Time"]} />
+            <Line type="monotone" dataKey="clockIn" stroke="#22c55e" dot={renderCustomDot} />
+            <Line type="monotone" dataKey="clockOut" stroke="#f97316" dot={renderCustomDot} />
           </LineChart>
         </ResponsiveContainer>
       )}
