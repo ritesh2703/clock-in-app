@@ -139,7 +139,7 @@ const Attendance = () => {
       const updateData = {};
 
       if (editingField === "clockIn" && newClockInTime) {
-        updateData.clockInTime = newClockInTime;
+        updateData.clockInTime = new Date(`${new Date().toISOString().split('T')[0]}T${newClockInTime}`);
       }
 
       if (editingField === "clockOut" && newClockOutTime) {
@@ -147,7 +147,7 @@ const Attendance = () => {
           alert("Clock Out time must be after Clock In time.");
           return;
         }
-        updateData.clockOutTime = newClockOutTime;
+        updateData.clockOutTime = new Date(`${new Date().toISOString().split('T')[0]}T${newClockOutTime}`);
       }
 
       if (Object.keys(updateData).length > 0) {

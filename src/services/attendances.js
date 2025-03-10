@@ -104,7 +104,7 @@ export const getAttendanceData = async (userId, month, year) => {
           clockInTime: null,
           clockOutTime: null,
           workDuration: 0,
-          status: isHoliday ? "Holiday" : isWeekend ? "Weekend" : "Absent",
+          status: isHoliday ? `Holiday (${holidays.find((h) => h.date === date).name})` : isWeekend ? "Weekend" : "Absent",
         }
       );
     }
