@@ -55,11 +55,24 @@ export const getWeeklyAttendance = async (userId) => {
 
     querySnapshot.forEach((doc) => {
       const data = doc.data();
-      const clockInTime = data.clockInTime ? new Date(data.clockInTime.toDate()) : null;
-      const clockOutTime = data.clockOutTime ? new Date(data.clockOutTime.toDate()) : null;
+
+      // Handle clockInTime and clockOutTime conversion
+      const clockInTime = data.clockInTime
+        ? typeof data.clockInTime.toDate === "function"
+          ? new Date(data.clockInTime.toDate()) // Firestore Timestamp
+          : new Date(data.clockInTime) // Fallback for string/number
+        : null;
+
+      const clockOutTime = data.clockOutTime
+        ? typeof data.clockOutTime.toDate === "function"
+          ? new Date(data.clockOutTime.toDate()) // Firestore Timestamp
+          : new Date(data.clockOutTime) // Fallback for string/number
+        : null;
 
       // Calculate work duration in hours
-      const workDuration = clockInTime && clockOutTime ? ((clockOutTime - clockInTime) / (1000 * 60 * 60)).toFixed(2) : null;
+      const workDuration = clockInTime && clockOutTime
+        ? ((clockOutTime - clockInTime) / (1000 * 60 * 60)).toFixed(2)
+        : null;
 
       attendanceData.push({
         day: `${new Date(data.date).toLocaleDateString("en-US", { weekday: "short" })} (${new Date(data.date).toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit" })})`, // Format: "Sun (09/03)"
@@ -101,6 +114,7 @@ export const getWeeklyAttendance = async (userId) => {
     throw error;
   }
 };
+
 /**
  * Fetches attendance data for a user for a specific month and year.
  * @param {string} userId - The user's ID.
