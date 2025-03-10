@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Dot } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import { auth } from "../firebase/firebase";
+import { getWeeklyAttendance } from "../services/attendanceService"; // Adjust the import path
 
 const AttendanceGraph = () => {
   const [attendanceData, setAttendanceData] = useState([]);
@@ -35,15 +36,18 @@ const AttendanceGraph = () => {
     }
   };
 
-  const renderCustomDot = (props) => {
-    const { cx, cy, payload } = props;
-    const statusColors = {
-      present: "#22c55e", // Green
-      absent: "#ef4444", // Red
-      weekend: "#3b82f6", // Blue
-    };
-
-    return <Dot cx={cx} cy={cy} r={6} fill={statusColors[payload.status] || "#22c55e"} />;
+  // Custom colors for bars based on status
+  const getBarColor = (status) => {
+    switch (status) {
+      case "present":
+        return "#22c55e"; // Green
+      case "absent":
+        return "#ef4444"; // Red
+      case "holiday":
+        return "#3b82f6"; // Blue
+      default:
+        return "#22c55e"; // Default to green
+    }
   };
 
   return (
@@ -57,14 +61,22 @@ const AttendanceGraph = () => {
       ) : attendanceData.length === 0 ? (
         <p className="text-center text-gray-500">No attendance data available.</p>
       ) : (
-        <ResponsiveContainer width="100%" height={250}>
-          <LineChart data={attendanceData}>
+        <ResponsiveContainer width="100%" height={300}>
+          <BarChart data={attendanceData}>
             <XAxis dataKey="day" />
-            <YAxis hide />
-            <Tooltip formatter={(value, name, props) => [`Clock In: ${props.payload.clockIn || "--"} | Clock Out: ${props.payload.clockOut || "--"}`, "Time"]} />
-            <Line type="monotone" dataKey="clockIn" stroke="#22c55e" dot={renderCustomDot} />
-            <Line type="monotone" dataKey="clockOut" stroke="#f97316" dot={renderCustomDot} />
-          </LineChart>
+            <YAxis />
+            <Tooltip
+              formatter={(value, name, props) => [
+                `Work Duration: ${props.payload.workDuration} hrs`,
+                `Clock In: ${props.payload.clockIn} | Clock Out: ${props.payload.clockOut}`,
+              ]}
+            />
+            <Bar dataKey="workDuration">
+              {attendanceData.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={getBarColor(entry.status)} />
+              ))}
+            </Bar>
+          </BarChart>
         </ResponsiveContainer>
       )}
     </div>
